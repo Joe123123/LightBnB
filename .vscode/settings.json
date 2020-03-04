@@ -1,0 +1,13 @@
+{
+  "sqltools.connections": [
+    {
+      "askForPassword": false,
+      "database": "lightbnb",
+      "dialect": "PostgreSQL",
+      "name": "BNB",
+      "port": 5432,
+      "server": "localhost",
+      "username": "zhaowang"
+    }
+  ]
+}
