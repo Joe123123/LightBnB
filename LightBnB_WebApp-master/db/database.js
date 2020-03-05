@@ -23,7 +23,6 @@ const getUserWithEmail = function(email) {
     .query(text, values)
     .then(data => (data.rows[0] ? data.rows[0] : null));
 };
-exports.getUserWithEmail = getUserWithEmail;
 
 /**
  * Get a single user from the database given their id.
@@ -37,7 +36,6 @@ const getUserWithId = function(id) {
     .query(text, values)
     .then(data => (data.rows[0] ? data.rows[0] : null));
 };
-exports.getUserWithId = getUserWithId;
 
 /**
  * Add a new user to the database.
@@ -53,7 +51,6 @@ const addUser = function(user) {
     .query(text, values)
     .then(data => (data.rows[0] ? data.rows[0] : null));
 };
-exports.addUser = addUser;
 
 /// Reservations
 
@@ -82,7 +79,6 @@ const getAllReservations = function(guest_id, limit = 10) {
                   $2;`;
   return pool.query(text, values).then(data => data.rows);
 };
-exports.getAllReservations = getAllReservations;
 
 /// Properties
 
@@ -100,7 +96,6 @@ const getAllProperties = function(options, limit = 10) {
   const values = [limit];
   return pool.query(text, values).then(data => data.rows);
 };
-exports.getAllProperties = getAllProperties;
 
 /**
  * Add a property to the database
@@ -113,4 +108,12 @@ const addProperty = function(property) {
   properties[propertyId] = property;
   return Promise.resolve(property);
 };
-exports.addProperty = addProperty;
+
+module.exports = {
+  addProperty,
+  getAllProperties,
+  getAllReservations,
+  addUser,
+  getUserWithId,
+  getUserWithEmail
+};
