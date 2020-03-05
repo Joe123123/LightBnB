@@ -1,5 +1,5 @@
-const properties = require("./json/properties.json");
-const users = require("./json/users.json");
+const properties = require("../server/json/properties.json");
+const users = require("../server/json/users.json");
 const { Pool } = require("pg");
 
 const pool = new Pool({
