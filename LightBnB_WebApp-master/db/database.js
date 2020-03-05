@@ -123,10 +123,7 @@ const getAllProperties = function(options, limit = 10) {
   }
   values.push(limit);
   text += `LIMIT $${values.length};`;
-  console.log(text, values);
-  return pool.query(text, values).then(data => {
-    return data.rows;
-  });
+  return pool.query(text, values).then(data => data.rows);
 };
 
 /**
