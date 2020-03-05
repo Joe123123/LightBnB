@@ -89,12 +89,44 @@ const getAllReservations = function(guest_id, limit = 10) {
  * @return {Promise<[{}]>}  A promise to the properties.
  */
 const getAllProperties = function(options, limit = 10) {
-  const text = `SELECT p.*, AVG(pr.rating) average_rating 
-                FROM properties p JOIN property_reviews pr ON p.id = pr.property_id
-                GROUP BY pr.id, p.id
-                LIMIT $1;`;
-  const values = [limit];
-  return pool.query(text, values).then(data => data.rows);
+  const {
+    city,
+    owner_id,
+    minimum_price_per_night,
+    maximum_price_per_night,
+    minimum_rating
+  } = options;
+  let values = [];
+  let text = `SELECT p.*, AVG(pr.rating) average_rating 
+              FROM properties p JOIN property_reviews pr ON p.id = pr.property_id
+             `;
+  if (city) {
+    values.push(`%${options.city}%`);
+    text += `WHERE city LIKE $${values.length} `;
+  }
+  if (owner_id) {
+    values.push(owner_id);
+    text += `AND p.owner_id = $${values.length} `;
+  }
+  if (minimum_price_per_night) {
+    values.push(parseFloat(minimum_price_per_night) * 100);
+    text += `AND p.cost_per_night >= $${values.length} `;
+  }
+  if (maximum_price_per_night) {
+    values.push(parseFloat(maximum_price_per_night) * 100);
+    text += `AND p.cost_per_night <= $${values.length} `;
+  }
+  text += `GROUP BY pr.id, p.id `;
+  if (minimum_rating) {
+    values.push(parseFloat(minimum_rating));
+    text += `HAVING AVG(pr.rating) >= $${values.length} `;
+  }
+  values.push(limit);
+  text += `LIMIT $${values.length};`;
+  console.log(text, values);
+  return pool.query(text, values).then(data => {
+    return data.rows;
+  });
 };
 
 /**
