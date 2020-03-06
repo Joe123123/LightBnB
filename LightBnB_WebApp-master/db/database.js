@@ -90,8 +90,9 @@ const getAllReservations = function(guest_id, limit = 10) {
  */
 const getAllProperties = function(options, limit = 10) {
   const {
+    // use getPropertiesById;
+    // owner_id,
     city,
-    owner_id,
     minimum_price_per_night,
     maximum_price_per_night,
     minimum_rating
@@ -104,13 +105,26 @@ const getAllProperties = function(options, limit = 10) {
     values.push(`%${options.city}%`);
     text += `WHERE city LIKE $${values.length} `;
   }
-  if (owner_id) {
-    values.push(owner_id);
-    text += `AND p.owner_id = $${values.length} `;
-  }
+  // use getPropertiesById;
+
+  // if (owner_id) {
+  //   values.push(parseInt(owner_id));
+  //   if (text.includes("WHERE")) {
+  //     text += `AND p.owner_id = $${values.length} `;
+  //   } else {
+  //     text += `WHERE p.owner_id = $${values.length} `;
+  //   }
+  // }
   if (minimum_price_per_night) {
     values.push(parseFloat(minimum_price_per_night) * 100);
     text += `AND p.cost_per_night >= $${values.length} `;
+    // still work without where??? wired???
+
+    // if (text.includes("WHERE")) {
+    //   text += `AND p.cost_per_night >= $${values.length} `;
+    // } else {
+    //   text += `WHERE p.cost_per_night >= $${values.length} `;
+    // }
   }
   if (maximum_price_per_night) {
     values.push(parseFloat(maximum_price_per_night) * 100);
@@ -123,6 +137,7 @@ const getAllProperties = function(options, limit = 10) {
   }
   values.push(limit);
   text += `LIMIT $${values.length};`;
+  console.log(text, values);
   return pool.query(text, values).then(data => data.rows);
 };
 
@@ -132,10 +147,77 @@ const getAllProperties = function(options, limit = 10) {
  * @return {Promise<{}>} A promise to the property.
  */
 const addProperty = function(property) {
-  const propertyId = Object.keys(properties).length + 1;
-  property.id = propertyId;
-  properties[propertyId] = property;
-  return Promise.resolve(property);
+  const {
+    owner_id,
+    title,
+    description,
+    thumbnail_photo_url,
+    cover_photo_url,
+    cost_per_night,
+    street,
+    city,
+    province,
+    post_code,
+    country,
+    parking_spaces,
+    number_of_bathrooms,
+    number_of_bedrooms
+  } = property;
+  const values = [
+    owner_id,
+    title,
+    description,
+    thumbnail_photo_url,
+    cover_photo_url,
+    cost_per_night * 100,
+    street,
+    city,
+    province,
+    post_code,
+    country,
+    parking_spaces,
+    number_of_bathrooms,
+    number_of_bedrooms
+  ];
+  const text = `INSERT INTO properties (
+                  owner_id,
+                  title,
+                  description,
+                  thumbnail_photo_url,
+                  cover_photo_url,
+                  cost_per_night,
+                  street,
+                  city,
+                  province,
+                  post_code,
+                  country,
+                  parking_spaces,
+                  number_of_bathrooms,
+                  number_of_bedrooms
+                ) 
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+                RETURNING *;
+                `;
+  return pool.query(text, values).then(data => data.rows);
+};
+
+// add my own
+const getPropertiesById = function(id, limit = 10) {
+  const values = [id, limit];
+  const text = `SELECT
+                  p.*,
+                  AVG(pr.rating) average_rating
+                FROM properties p
+                LEFT JOIN property_reviews pr ON p.id = pr.property_id
+                WHERE
+                  p.owner_id = $1
+                GROUP BY
+                  p.id
+                ORDER BY
+                p.id DESC
+                LIMIT
+                  $2;`;
+  return pool.query(text, values).then(data => data.rows);
 };
 
 module.exports = {
@@ -144,5 +226,6 @@ module.exports = {
   getAllReservations,
   addUser,
   getUserWithId,
-  getUserWithEmail
+  getUserWithEmail,
+  getPropertiesById
 };
